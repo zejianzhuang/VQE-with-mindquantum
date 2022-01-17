@@ -17,8 +17,29 @@ The problem we want to tackle is based on Ref. [[1]](#1). In this paper, O'Malle
 The molecular hydrogen Hamiltonian is 
 <p align="center"> <img src="https://render.githubusercontent.com/render/math?math=%5Ccolor%7Bgreen%7DH%3Dg_%7B0%7DI%20%2B%20g_%7B1%7DZ_%7B0%7D%2Bg_%7B2%7DZ_%7B0%7DZ_%7B1%7D%2Bg_%7B3%7DZ_%7B0%7DZ_%7B1%7D%2Bg_%7B4%7DY_%7B0%7DY_%7B1%7D%2Bg_%7B5%7DX_%7B0%7DX_%7B1%7D"> </p>
 where {X_i, Z_i, Y_i} denote Pauli matrices acting on the *i*th qubit and the real scalars {g_i} are efficiently computable functions of hydrogen-hydrogen bond length R. Let’s build a Hamiltonian for the H2 molecule with different bond length. Firstly, we import mindquantum package.
+
 ```python
-  import mindquantum as mq
+import mindquantum as mq
+```
+Defind the function for Hamiltonian:
+
+```python
+def hamiltonian(coeff):
+    a, b, c, d, e, f = coeff
+    h = mq.QubitOperator('', a) + mq.QubitOperator("Z0", b) + mq.QubitOperator("Z1", c) + mq.QubitOperator("Z0 Z1", d) + mq.QubitOperator("Y0 Y1", e) + mq.QubitOperator("X0 X1", f)
+    return mq.Hamiltonian(h)
+```
+Then we should prepare the ansatz. The ansatz for our problem is 
+<p align="center"> <img src="https://render.githubusercontent.com/render/math?math=%5Ccolor%7Bgreen%7D%7C%5Cpsi(%5Ctheta)%5Crangle%20%3D%20e%5E%7B-i%5Ctheta%20X_%7B0%7DY_%7B1%7D%7D%7C01%5Crangle"> </p>
+
+```python
+from mindquantum.core.operators import TimeEvolution
+# Initial Hartree Fock state
+hf = mq.Circuit()
+hf += mq.X.on(0)
+# Create ansatz circuit
+u = mq.QubitOperator("X0 Y1", 't')
+ansatz_circuit = TimeEvolution(u, 1.0).circuit
 ```
 
 
