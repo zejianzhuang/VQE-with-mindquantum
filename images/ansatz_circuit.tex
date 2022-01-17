@@ -1,0 +1,14 @@
+\documentclass{standalone}
+\usepackage{tikz-quantumgates}
+\newcommand{\CNOT}[5]{\qgateCNC[ibmqx]{#1}{#3}{#4}\qgateCNX[ibmqx]{#2}{#3}{#5}}
+\begin{document}
+
+  \centering
+  \begin{tikzpicture}
+    \qzero[ibmqx]{0}{0}\qzero[ibmqx]{0}{-1}
+    \qgateX[ibmqx]{1}{0} \qgateH[ibmqx]{2}{0} \qgateCNC[ibmqx]{b}{3}{0} \qwire[ibmqx]{4}{0}
+    \CNOT{b}{t}{5}{0}{-1} \qgateH[ibmqx]{6}{0}
+    \qgateRx*[ibmqx]{1}{-1}{$\pi/2$} \qwire[ibmqx]{2}{-1} \qgateCNX[ibmqx]{t}{3}{-1} \qgateRz*[ibmqx]{4}{-1}{$2\theta$} \qgateRx*[ibmqx]{6}{-1}{$7\pi/2$}
+  \end{tikzpicture}
+\end{document}
+$\langle H(\theta)\rangle=\langle\psi(\theta)|H|\psi(\theta)\rangle$

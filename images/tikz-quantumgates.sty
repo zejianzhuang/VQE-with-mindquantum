@@ -1,0 +1,794 @@
+%% == LaTeX PACKAGE tikz-quantumgates =========================================
+%%    Drawing quantum circuits with TikZ
+%% 
+%% Matthias Wolff, BTU Cottbus-Sentenberg
+%% August 20, 2018
+%%
+%% References:
+%% [1] T. Tantau. TikZ & PGF - Manual for Version 3.0.1a. 2015. 
+%%     http://mirror.ctan.org/graphics/pgf/base/doc/pgfmanual.pdf Retrieved 
+%%     July 22, 2018.
+%%
+%% TODO:
+%%  - Barrier symbols: \qbarrX 
+
+%% == REQUIRED PACKAGES =======================================================
+
+\RequirePackage{xifthen}
+\RequirePackage{tikz}
+
+%% == DEFINITIONS AND COLORS ==================================================
+\def\qgateSx{1.3}
+
+\definecolor{ibmqxA}{HTML}{F69458}                                              % IBM QX Ux gate
+\definecolor{ibmqxB}{HTML}{FFCA64}                                              % IBM QX id gate
+\definecolor{ibmqxC}{HTML}{A6CE38}                                              % IBM QX Pauli gates
+\definecolor{ibmqxD}{HTML}{00BFF2}                                              % IBM QX H, S, S' und CNOT gates
+\definecolor{ibmqxE}{HTML}{FF6666}                                              % IBM QX T und T' gates
+\definecolor{ibmqxF}{HTML}{F070AA}                                              % IBM QX measurement and if
+\definecolor{ibmqxG}{HTML}{ADC1C6}                                              % IBM QX barrier
+\definecolor{ibmqxH}{HTML}{F2F2F2}                                              % IBM QX |0> state
+\definecolor{ibmqxI}{HTML}{ABA7A7}                                              % IBM QX measurement wire
+
+%% == COMMANDS ================================================================
+
+% Wire
+\newcommand{\qwire}[3][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+  }{%
+    \tikzset{lstyle/.style={}}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+}}
+
+% Zero state preparator
+\newcommand{\qzero}[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \draw[ultra thick,line cap=butt] (\x+0.4,\y) -- (\x+\qgateSx/2,\y);
+    \draw[draw=none,fill=ibmqxH] (\x-0.4,\y-0.4) rectangle (\x+0.4,\y+0.4);
+    \node at (\x,\y){\large $|0\rangle$};
+  }{%
+    \node[anchor=east] at (\x+\qgateSx/2,\y){$|0\rangle$};
+  }%
+}}
+
+% General single-qubit gate
+\newcommand\qgateU[4][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{rstyle/.style={draw=none,fill=ibmqxG}}
+    }{%
+      \tikzset{rstyle/.style={draw=none,fill=#1}}
+    }
+    \tikzset{tstyle/.style={white}}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{rstyle/.style={fill=white}}
+    \tikzset{tstyle/.style={}}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x-0.4       ,\y);
+  \draw[lstyle] (\x+0.4       ,\y) -- (\x+\qgateSx/2,\y);
+  \draw[rstyle] (\x-0.4   ,\y-0.4) rectangle (\x+0.4,\y+0.4);
+  \node[tstyle,anchor=center] at (\x,\y) {\sf\large #4};
+}}
+
+% Identity gate
+\newcommand\qgateID[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxB]{#2}{#3}{id}
+  }{%
+    \qgateU{#2}{#3}{id}
+  }%
+}
+\newcommand\qgateOID{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} & \bra{1} \\\hline
+    \ket{0} &       1 &       0 \\
+    \ket{1} &       0 &       1
+  \end{array}\!\right)
+}}
+
+% Pauli-X gate
+\newcommand\qgateX[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxC]{#2}{#3}{X}
+  }{%
+    \qgateU{#2}{#3}{X}
+  }%
+}
+\newcommand\qgateOX{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} & \bra{1} \\\hline
+    \ket{0} &       0 &       1 \\
+    \ket{1} &       1 &       0
+  \end{array}\!\right)
+}}
+
+% Pauli-Y gate
+\newcommand\qgateY[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxC]{#2}{#3}{Y}
+  }{%
+    \qgateU{#2}{#3}{Y}
+  }%
+}
+\newcommand\qgateOY{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\j{\mathrm{i}}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            &  \bra{0} &  \bra{1} \\\hline
+    \ket{0} &        0 &      -\j \\
+    \ket{1} &       \j &        0
+  \end{array}\!\right)
+}}
+
+% Pauli-Z gate
+\newcommand\qgateZ[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxC]{#2}{#3}{Z}
+  }{%
+    \qgateU{#2}{#3}{Z}
+  }%
+}
+\newcommand\qgateOZ{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} & \bra{1} \\\hline
+    \ket{0} &       1 &       0 \\
+    \ket{1} &       0 &      -1
+  \end{array}\!\right)
+}}
+
+% Hadamard gate
+\newcommand\qgateH[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxD]{#2}{#3}{H}
+  }{%
+    \qgateU{#2}{#3}{H}
+  }%
+}
+\newcommand\qgateOH{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} & \bra{1} \\\hline
+    \ket{0} &       1 &       1 \\
+    \ket{1} &       1 &      -1
+  \end{array}\!\right)
+}}
+
+% S phase gate
+\newcommand\qgateS[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxD]{#2}{#3}{S}
+  }{%
+    \qgateU{#2}{#3}{S}
+  }%
+}
+\newcommand\qgateOS{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\j{\mathrm{i}}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} & \bra{1} \\\hline
+    \ket{0} &       1 &       0 \\
+    \ket{1} &       0 &      \j
+  \end{array}\!\right)
+}}
+
+% Inverse S phase gate
+\newcommand\qgateSi[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxD]{#2}{#3}{S$^\dagger$}
+  }{%
+    \qgateU{#2}{#3}{S$^\dagger$}
+  }%
+}
+\newcommand\qgateOSi{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\j{\mathrm{i}}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} &  \bra{1} \\\hline
+    \ket{0} &       1 &        0 \\
+    \ket{1} &       0 &      -\j
+  \end{array}\!\right)
+}}
+
+% T phase gate
+\newcommand\qgateT[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxE]{#2}{#3}{T}
+  }{%
+    \qgateU{#2}{#3}{T}
+  }%
+}
+\newcommand\qgateOT{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\j{\mathrm{i}}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} &                      \bra{1} \\\hline
+    \ket{0} &       1 &                            0 \\
+    \ket{1} &       0 & \frac{1}{\sqrt{2}}(1\!+\!\j)
+  \end{array}\!\right)
+}}
+
+% Inverse T phase gate
+\newcommand\qgateTi[3][]{%
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxE]{#2}{#3}{T$^\dagger$}
+  }{%
+    \qgateU{#2}{#3}{T$^\dagger$}
+  }%
+}
+\newcommand\qgateOTi{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\j{\mathrm{i}}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} &                      \bra{1} \\\hline
+    \ket{0} &       1 &                            0 \\
+    \ket{1} &       0 & \frac{1}{\sqrt{2}}(1\!-\!\j)
+  \end{array}\!\right)
+}}
+% Rotation gate Rx
+\makeatletter
+\newcommand\qgateRx{\@ifstar\qgateRxS\qgateRxN}
+\makeatother
+\newcommand\qgateRxN[3][]{% unstarred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{Rx}
+  }{%
+    \qgateU{#2}{#3}{Rx}
+  }%
+}
+\newcommand\qgateRxS[4][]{% starred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{\qgateSublabel{Rx}{#4}}
+  }{%
+    \qgateU{#2}{#3}{\qgateSublabel{Rx}{#4}}
+  }%
+}
+% Rotation gate Rz
+\makeatletter
+\newcommand\qgateRz{\@ifstar\qgateRzS\qgateRzN}
+\makeatother
+\newcommand\qgateRzN[3][]{% unstarred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{Rx}
+  }{%
+    \qgateU{#2}{#3}{Rz}
+  }%
+}
+\newcommand\qgateRzS[4][]{% starred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{\qgateSublabel{Rz}{#4}}
+  }{%
+    \qgateU{#2}{#3}{\qgateSublabel{Rz}{#4}}
+  }%
+}
+% U1 gate of IBM Q Experience
+\makeatletter
+\newcommand\qgateUa{\@ifstar\qgateUaS\qgateUaN}
+\makeatother
+\newcommand\qgateUaN[3][]{% unstarred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{U1}
+  }{%
+    \qgateU{#2}{#3}{U1}
+  }%
+}
+\newcommand\qgateUaS[4][]{% starred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{\qgateSublabel{U1}{#4}}
+  }{%
+    \qgateU{#2}{#3}{\qgateSublabel{U1}{#4}}
+  }%
+}
+\newcommand\qgateOUa{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\e{\mathrm{e}}
+  \def\j{\mathrm{i}}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            & \bra{0} &        \bra{1} \\\hline
+    \ket{0} &       1 &              0 \\
+    \ket{1} &       0 & \e^{\lambda\j}
+  \end{array}\!\right)
+}}
+
+% U2 gate of IBM Q Experience
+\makeatletter
+\newcommand\qgateUb{\@ifstar\qgateUbS\qgateUbN}
+\makeatother
+\newcommand\qgateUbN[3][]{% unstarred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{U2}
+  }{%
+    \qgateU{#2}{#3}{U2}
+  }%
+}
+\newcommand\qgateUbS[4][]{% starred version
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \qgateU[ibmqxA]{#2}{#3}{\qgateSublabel{U2}{#4}}
+  }{%
+    \qgateU{#2}{#3}{\qgateSublabel{U2}{#4}}
+  }%
+}
+\newcommand\qgateOUb{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\e{\mathrm{e}}
+  \def\j{\mathrm{i}}
+  \renewcommand\arraystretch{1.4}
+  \dfrac{1}{\sqrt{2}}\!
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            &     \bra{0} &               \bra{1} \\\hline
+    \ket{0} &           1 &       -\e^{\lambda\j} \\
+    \ket{1} & \e^{\phi\j} & \e^{(\lambda+\phi)\j}
+  \end{array}\!\right)
+}}
+
+% U3 gate of IBM Q Experience
+\makeatletter
+\newcommand\qgateUc{\@ifstar\qgateUcS\qgateUcN}
+\makeatother
+\newcommand\qgateUcN[3][]{% 
+  \ifthenelse{\isin{ibmqx}{#1}}{% unstarred version
+    \qgateU[ibmqxA]{#2}{#3}{U3}
+  }{%
+    \qgateU{#2}{#3}{U3}
+  }%
+}
+\newcommand\qgateUcS[4][]{% starred version 
+  \ifthenelse{\isin{ibmqx}{#1}}{% unstarred version
+    \qgateU[ibmqxA]{#2}{#3}{\qgateSublabel{U3}{#4}}
+  }{%
+    \qgateU{#2}{#3}{\qgateSublabel{U3}{#4}}
+  }%
+}
+\newcommand\qgateOUc{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\scriptstyle\langle ##1|}
+  \def\e{\mathrm{e}}
+  \def\j{\mathrm{i}}
+  \renewcommand\arraystretch{1.4}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cc}
+            &                           \bra{0} &                                     \bra{1} \\\hline
+    \ket{0} &            \cos(\frac{\theta}{2}) &       -\sin(\frac{\theta}{2})\e^{\lambda\j} \\
+    \ket{1} & \sin(\frac{\theta}{2})\e^{\phi\j} & \cos(\frac{\theta}{2})\e^{(\lambda+\phi)\j}
+  \end{array}\!\right)
+}}
+
+% General two-qubit gate
+\newcommand{\qgateUu}[4][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{rstyle/.style={draw=none,fill=ibmqxG}}
+    }{%
+      \tikzset{rstyle/.style={draw=none,fill=#1}}
+    }
+    \tikzset{tstyle/.style={white}}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{rstyle/.style={fill=white}}
+    \tikzset{tstyle/.style={}}
+  }%
+  \draw[rstyle] (\x-0.5    ,\y-0.25) rectangle (\x+0.5,\y+1.25);
+  \draw[lstyle] (\x-\qgateSx/2,\y+1) -- (\x-0.5       ,\y+1);
+  \draw[lstyle] (\x+0.5       ,\y+1) -- (\x+\qgateSx/2,\y+1);
+  \draw[lstyle] (\x-\qgateSx/2,\y  ) -- (\x-0.     5  ,\y  );
+  \draw[lstyle] (\x+0.5       ,\y  ) -- (\x+\qgateSx/2,\y  );
+  \node[anchor=north,tstyle] at (\x,\y+1.25){\sf\large #4};
+}}
+
+% General three-qubit gate
+\newcommand{\qgateUuu}[4][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{rstyle/.style={draw=none,fill=ibmqxG}}
+    }{%
+      \tikzset{rstyle/.style={draw=none,fill=#1}}
+    }
+    \tikzset{tstyle/.style={white}}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{rstyle/.style={fill=white}}
+    \tikzset{tstyle/.style={}}
+  }%
+  \draw[rstyle] (\x-0.5    ,\y-1.25) rectangle (\x+0.5,\y+1.25);%
+  \draw[lstyle] (\x-\qgateSx/2,\y+1) -- (\x-0.5       ,\y+1);%
+  \draw[lstyle] (\x+0.5       ,\y+1) -- (\x+\qgateSx/2,\y+1);%
+  \draw[lstyle] (\x-\qgateSx/2,\y  ) -- (\x-0.5       ,\y  );%
+  \draw[lstyle] (\x+0.5       ,\y  ) -- (\x+\qgateSx/2,\y  );%
+  \draw[lstyle] (\x-\qgateSx/2,\y-1) -- (\x-0.5       ,\y-1);%
+  \draw[lstyle] (\x+0.5       ,\y-1) -- (\x+\qgateSx/2,\y-1);%
+  \node[anchor=north,tstyle] at (\x,\y+1.25){\sf\large #4};%
+}}
+
+% CNOT gate XOR symbol
+\newcommand\qgateCNX[4][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#3)}
+  \pgfmathsetmacro\y{(#4)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \tikzset{cstyle/.style={ibmqxD,ultra thick,line cap=butt}}
+    \tikzset{rstyle/.style={draw=none,fill=ibmqxD}}
+    \tikzset{tstyle/.style={very thick,white}}
+    \def\R{0.4}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{cstyle/.style={}}
+    \tikzset{rstyle/.style={fill=white}}
+    \tikzset{tstyle/.style={}}
+    \def\R{0.25}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x-\R        ,\y);
+  \draw[lstyle] (\x+\R        ,\y) -- (\x+\qgateSx/2,\y);
+  \draw[rstyle] (\x           ,\y) circle (\R);
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \draw[tstyle] (\x-0.2,\y) -- (\x+0.2,\y);
+    \draw[tstyle] (\x,\y-0.2) -- (\x,\y+0.2);
+  }{%
+    \draw[lstyle] (\x-\R,\y) -- (\x+\R,\y);
+    \draw[lstyle] (\x,\y-\R) -- (\x,\y+\R);
+  }
+  \ifthenelse{\isin{t}{#2}}{%
+    \draw[cstyle] (\x,\y+\R) -- (\x,\y+0.5);
+  }{}
+  \ifthenelse{\isin{b}{#2}}{%
+    \draw[cstyle] (\x,\y-\R) -- (\x,\y-0.5);
+  }{}
+}}
+
+% CNOT gate control qubit symbol
+\makeatletter
+\newcommand\qgateCNC{\@ifstar\qgateCNCS\qgateCNCN}
+\makeatother
+\newcommand\qgateCNCS[4][]{\qgateCNCint{#1}{#2}{#3}{#4}{inv}}%starred version
+\newcommand\qgateCNCN[4][]{\qgateCNCint{#1}{#2}{#3}{#4}{}}   %unstarred version
+\newcommand\qgateCNCint[5]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#3)}
+  \pgfmathsetmacro\y{(#4)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{cstyle/.style={ibmqxD,ultra thick,line cap=butt}}
+      \ifthenelse{\equal{inv}{#5}}{%
+        \tikzset{rstyle/.style={draw=ibmqxD,thick,fill=white}}
+      }{%
+        \tikzset{rstyle/.style={draw=none,fill=ibmqxD}}
+      }
+    }{%
+      \tikzset{cstyle/.style={#1,ultra thick,line cap=butt}}
+      \ifthenelse{\equal{inv}{#5}}{%
+        \tikzset{rstyle/.style={draw=#1,thick,fill=white}}
+      }{%
+        \tikzset{rstyle/.style={draw=none,fill=#1}}
+      }
+    }      
+    \tikzset{tstyle/.style={white}}
+    \def\r{0.12}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{cstyle/.style={}}
+      \ifthenelse{\equal{inv}{#5}}{%
+        \tikzset{rstyle/.style={draw=black,fill=white}}
+      }{%
+        \tikzset{rstyle/.style={draw=none,fill=black}}
+      }
+    \tikzset{tstyle/.style={}}
+    \def\r{0.1}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+  \draw[rstyle] (\x           ,\y) circle (\r);
+  \ifthenelse{\isin{t}{#2}}{%
+    \draw[cstyle] (\x,\y+0.1) -- (\x,\y+0.5);
+  }{}
+  \ifthenelse{\isin{b}{#2}}{%
+    \draw[cstyle] (\x,\y-0.1) -- (\x,\y-0.5);
+  }{}
+}}
+
+
+% \newcommand\qgateCNC[4][]{{%                                                     
+%   \pgfmathsetmacro\x{\qgateSx*(#3)}
+%   \pgfmathsetmacro\y{(#4)}
+%   \ifthenelse{\isin{ibmqx}{#1}}{%
+%     \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+%     \ifthenelse{\equal{ibmqx}{#1}}{%
+%       \tikzset{cstyle/.style={ibmqxD,ultra thick,line cap=butt}}
+%       \tikzset{rstyle/.style={draw=none,fill=ibmqxD}}
+%     }{%
+%       \tikzset{cstyle/.style={#1,ultra thick,line cap=butt}}
+%       \tikzset{rstyle/.style={draw=none,fill=#1}}
+%     }      
+%     \tikzset{tstyle/.style={white}}
+%     \def\r{0.12}
+%   }{%
+%     \tikzset{lstyle/.style={}}
+%     \tikzset{cstyle/.style={}}
+%     \tikzset{rstyle/.style={draw=none,fill=black}}
+%     \tikzset{tstyle/.style={}}
+%     \def\r{0.1}
+%   }%
+%   \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+%   \draw[rstyle] (\x           ,\y) circle (\r);
+%   \ifthenelse{\isin{t}{#2}}{%
+%     \draw[cstyle] (\x,\y+0.1) -- (\x,\y+0.5);
+%   }{}
+%   \ifthenelse{\isin{b}{#2}}{%
+%     \draw[cstyle] (\x,\y-0.1) -- (\x,\y-0.5);
+%   }{}
+% }}
+
+% CNOT gate run-through qubit symbol
+\newcommand\qgateCNR[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{cstyle/.style={ibmqxD,ultra thick,line cap=butt}}
+    }{%
+      \tikzset{cstyle/.style={#1,ultra thick,line cap=butt}}
+    }          
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{cstyle/.style={}}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+  \draw[cstyle] (\x       ,\y-0.5) -- (\x       ,\y+0.5);
+}}
+
+% Sawp gate top qubit symbol
+\newcommand\qgateSWt[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \draw[ultra thick,line cap=butt]
+      (\x-\qgateSx/2,\y) -- (\x-0.2,\y) -- (\x+0.2,\y-0.4) -- (\x+0.2,\y-0.5);
+    \draw[ultra thick,line cap=butt]
+      (\x+\qgateSx/2,\y) -- (\x+0.2,\y) -- (\x-0.2,\y-0.4) -- (\x-0.2,\y-0.5);
+  }{%
+    \pgfmathsetmacro\w{0.1}
+    \draw(\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+    \draw(\x-\w,     \y-\w) -- (\x+\w,     \y+\w); 
+    \draw(\x-\w,     \y+\w) -- (\x+\w,     \y-\w); 
+    \draw(\x,           \y) -- (\x,       \y-0.5);
+  }%
+}}
+
+% Sawp gate run-through qubit symbol
+\newcommand\qgateSWR[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \draw[ultra thick,line cap=butt] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+    \draw[ultra thick,line cap=butt] (\x-0.2,   \y+0.5) -- (\x-0.2,   \y-0.5);
+    \draw[ultra thick,line cap=butt] (\x+0.2,   \y+0.5) -- (\x+0.2,   \y-0.5);
+  }{%
+    \draw(\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+    \draw(\x,       \y-0.5) -- (\x,       \y+0.5);
+  }%
+}}
+
+% Sawp gate bottom qubit symbol
+\newcommand\qgateSWb[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \draw[ultra thick,line cap=butt]
+      (\x-\qgateSx/2,\y) -- (\x-0.2,\y) -- (\x-0.2,\y+0.5);
+    \draw[ultra thick,line cap=butt]
+      (\x+\qgateSx/2,\y) -- (\x+0.2,\y) -- (\x+0.2,\y+0.5);
+  }{%
+    \pgfmathsetmacro\w{0.1}
+    \draw(\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+    \draw(\x-\w,     \y-\w) -- (\x+\w,     \y+\w); 
+    \draw(\x-\w,     \y+\w) -- (\x+\w,     \y-\w); 
+    \draw(\x,           \y) -- (\x,       \y+0.5);
+  }%
+}}
+
+% Measurement symbol
+\makeatletter
+\newcommand\qmeasM{\@ifstar\qmeasMS\qmeasMN}
+\makeatother
+\newcommand\qmeasMN[3][]{
+  \qmeasMS[#1]{#2}{#3}{Z}{br}
+}
+\newcommand\qmeasMS[5][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \tikzset{rstyle/.style={draw=none,fill=ibmqxF}}
+    \tikzset{tstyle/.style={white,very thick,line cap=butt}}
+    \tikzset{pstyle/.style={->,>=stealth,white,thick,line cap=butt}}
+    \tikzset{cstyle/.style={ibmqxI,ultra thick,line cap=butt}}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{rstyle/.style={fill=white}}
+    \tikzset{tstyle/.style={}}
+    \tikzset{pstyle/.style={->,>=stealth,line cap=butt}}
+    \tikzset{cstyle/.style={}}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y  ) -- (\x-0.4,\y);
+  \draw[rstyle] (\x-0.4    ,\y-0.4 ) rectangle (\x+0.4,\y+0.4);
+  \draw[tstyle] (\x+0.27   ,\y-0.2 ) arc (0:180:0.27);
+  \draw[pstyle] (\x        ,\y-0.15) -- (\x+0.2,\y+0.22); 
+  \node[pstyle] at (\x+0.28,\y+0.15) {\tiny\sf #4};
+  \fill[pstyle] (\x        ,\y-0.15) circle (0.035);
+  \ifthenelse{\isin{r}{#5}}{%
+    \draw[lstyle] (\x+0.4,\y) -- (\x+\qgateSx/2,\y);%
+  }{}
+  \ifthenelse{\isin{b}{#5}}{%
+    \draw[cstyle] (\x,\y-0.4 ) -- (\x,\y-0.5);%
+  }{}
+}}
+
+% Measurement run-through qubit symbol
+\newcommand\qmeasR[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{lstyle/.style={ultra thick,line cap=butt}}
+    \tikzset{cstyle/.style={ibmqxI,ultra thick,line cap=butt}}
+  }{%
+    \tikzset{lstyle/.style={}}
+    \tikzset{cstyle/.style={}}
+  }%
+  \draw[lstyle] (\x-\qgateSx/2,\y) -- (\x+\qgateSx/2,\y);
+  \draw[cstyle] (\x       ,\y-0.5) -- (\x       ,\y+0.5);
+}}
+
+% Measurement-joins-bus symbol
+\newcommand\qmeasMB[4][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#3)}
+  \pgfmathsetmacro\y{(#4)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{cstyle/.style={>=stealth,ibmqxI,ultra thick,line cap=butt}}
+  }{%
+    \tikzset{cstyle/.style={>=stealth}}
+  }%
+  \draw[cstyle](\x-\qgateSx/2,\y-0.3) -- (\x+\qgateSx/2,\y-0.3);
+  \draw[cstyle,->] (\x,\y+0.5) -- (\x,\y-0.3) 
+    node[anchor=north,black] {\footnotesize #2};
+}}
+
+% Measurement bus symbol
+\newcommand\qmeasB[3][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{cstyle/.style={ibmqxI,ultra thick,line cap=butt}}
+  }{%
+    \tikzset{cstyle/.style={}}
+  }%
+  \draw[cstyle](\x-\qgateSx/2,\y-0.3) -- (\x+\qgateSx/2,\y-0.3);
+}}
+
+% Measurement bus head symbol
+\newcommand\qmeasBh[4][]{{%                                                     
+  \pgfmathsetmacro\x{\qgateSx*(#3)}
+  \pgfmathsetmacro\y{(#4)}
+  \ifthenelse{\isin{ibmqx}{#1}}{%
+    \tikzset{cstyle/.style={ibmqxI,ultra thick,line cap=butt}}
+  }{%
+    \tikzset{cstyle/.style={}}
+  }%
+  \draw[cstyle](\x-\qgateSx/2,\y-0.3) -- (\x+\qgateSx/2,\y-0.3);
+  \draw[cstyle](\x-\qgateSx/2+0.05,\y-0.45) -- (\x-\qgateSx/2+0.15,\y-0.1)
+    node[anchor=east,black] {\footnotesize #2};
+}}
+
+%% == OTHER GATE OPERATORS ====================================================
+
+\newcommand\qgateOCNOT{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\rotatebox{90}{$\scriptstyle\langle ##1|$}}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cccc}
+             & \bra{00} & \bra{01} & \bra{10} & \bra{11} \\\hline
+    \ket{00} &        1 &        0 &        0 &        0 \\
+    \ket{01} &        0 &        1 &        0 &        0 \\
+    \ket{10} &        0 &        0 &        0 &        1 \\
+    \ket{11} &        0 &        0 &        1 &        0
+  \end{array}\!\right)
+}}
+
+\newcommand\qgateOCCNOT{{%
+  \def\ket##1{\scriptstyle|##1\rangle}
+  \def\bra##1{\rotatebox{90}{$\scriptstyle\langle ##1|$}}
+  \left(\hspace*{-0.4ex}\begin{array}{c|cccccccc}
+              & \bra{000} & \bra{001} & \bra{010} & \bra{011} & \bra{100} & \bra{101} & \bra{110} & \bra{111} \\\hline
+    \ket{000} &         1 &         0 &         0 &         0 &         0 &         0 &         0 &         0 \\
+    \ket{001} &         0 &         1 &         0 &         0 &         0 &         0 &         0 &         0 \\
+    \ket{010} &         0 &         0 &         1 &         0 &         0 &         0 &         0 &         0 \\
+    \ket{101} &         0 &         0 &         0 &         1 &         0 &         0 &         0 &         0 \\
+    \ket{100} &         0 &         0 &         0 &         0 &         1 &         0 &         0 &         0 \\
+    \ket{101} &         0 &         0 &         0 &         0 &         0 &         1 &         0 &         0 \\
+    \ket{110} &         0 &         0 &         0 &         0 &         0 &         0 &         0 &         1 \\
+    \ket{111} &         0 &         0 &         0 &         0 &         0 &         0 &         1 &         0
+  \end{array}\!\right)
+}}
+
+%% == AUXILIARY COMMANDS ======================================================
+
+% Control wires for gates
+\newcommand\qgateControl[4][]{{%
+  \pgfmathsetmacro\x{\qgateSx*(#3)}
+  \pgfmathsetmacro\y{(#4)}
+    \ifthenelse{\isin{ibmqx}{#1}}{%
+    \ifthenelse{\equal{ibmqx}{#1}}{%
+      \tikzset{cstyle/.style={ibmqxD,ultra thick,line cap=butt}}
+    }{%
+      \tikzset{cstyle/.style={#1,ultra thick,line cap=butt}}
+    }
+  }{%
+    \tikzset{cstyle/.style={}}
+  }%
+  \ifthenelse{\isin{t}{#2}}{%
+    \draw[cstyle] (\x,\y+0.4) -- (\x,\y+0.5);
+  }{}
+  \ifthenelse{\isin{b}{#2}}{%
+    \draw[cstyle] (\x,\y-0.4) -- (\x,\y-0.5);
+  }{}
+}}
+
+% TikZ node in circuit coordinate system
+\newcommand\qnode[4][]{%
+  \pgfmathsetmacro\x{\qgateSx*(#2)}
+  \pgfmathsetmacro\y{(#3)}
+  \node[anchor=center,#1] at (\x,\y) {#4};
+}
+
+%% == PACKAGE-INTERNAL COMMANDS ===============================================
+
+% Draw scale paper for documentations
+\newcommand{\qScalePaper}{%
+  \draw[help lines,xstep=(\qgateSx/8),ystep=0.25,opacity=0.2] (-1.5,-1.5) grid (1.5,1.5);
+  \draw[help lines,line width=.6pt,xstep=(\qgateSx/2),ystep=1,opacity=0.2] (-1.49,-1.5) grid (1.49,1.5);
+  \node[color=gray]              at (-1  ,-1.7) {\scriptsize $\qgateSx(\texttt{x}\!-\!\frac{1}{2})$};
+  \node[color=gray]              at ( 0  ,-1.7) {\scriptsize $\qgateSx\texttt{x}$};
+  \node[color=gray]              at ( 1  ,-1.7) {\scriptsize $\qgateSx(\texttt{x}\!+\!\frac{1}{2})$};
+  \node[anchor=west ,color=gray] at (-2.3,-1  ) {\scriptsize $\texttt{y}\!-\!1$};
+  \node[anchor=west ,color=gray] at (-2.3, 0  ) {\scriptsize $\texttt{y}$};
+  \node[anchor=west ,color=gray] at (-2.3, 1  ) {\scriptsize $\texttt{y}\!+\!1$};
+}
+
+% Draw gate label with sub-label
+\newcommand\qgateSublabel[2]{%
+  {\renewcommand{\arraystretch}{0.4}%
+  \begin{tabular}{c}#1\\\tiny #2\end{tabular}}%
+}
+
+
+
+%% == EOF =====================================================================
