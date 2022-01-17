@@ -41,7 +41,10 @@ hf += mq.X.on(0)
 u = mq.QubitOperator("X0 Y1", 't')
 ansatz_circuit = TimeEvolution(u, 1.0).circuit
 ```
-
+The quantum circuit for ansatz is shown:
+<p align="center">
+  <img width="400" src="images/ansatz_circuit.svg" alt="ansatz">
+</p>
 
 
 
