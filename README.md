@@ -12,7 +12,7 @@ The problem we want to tackle is based on Ref. [[1]](#1). In this paper, O'Malle
 <p align="center">
   <img width="500" src="images/vqe_diagram.svg" alt="vqe">
 </p>
-<p align="center"> The figure is taken from Ref. [1] </p>
+<h3 align="center"> The figure is taken from Ref. [1] </h3>
 
 The molecular hydrogen Hamiltonian is 
 <p align="center"> <img src="https://render.githubusercontent.com/render/math?math=%5Ccolor%7Bgreen%7DH%3Dg_%7B0%7DI%20%2B%20g_%7B1%7DZ_%7B0%7D%2Bg_%7B2%7DZ_%7B0%7DZ_%7B1%7D%2Bg_%7B3%7DZ_%7B0%7DZ_%7B1%7D%2Bg_%7B4%7DY_%7B0%7DY_%7B1%7D%2Bg_%7B5%7DX_%7B0%7DX_%7B1%7D"> </p>
