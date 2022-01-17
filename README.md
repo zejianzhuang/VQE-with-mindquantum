@@ -107,7 +107,7 @@ def vqe(total_circuit, all_coeff, dist, init_amp=[0.0]):
 ```
 Runing the code we design above, we get the result.
 <p align="center">
-  <img width="400" src="H2 energy.svg" alt="H2">
+  <img width="400" src="images/H2 energy.svg" alt="H2">
 </p>
 
 
