@@ -45,6 +45,70 @@ The quantum circuit for ansatz is shown:
 <p align="center">
   <img width="400" src="images/ansatz_circuit.svg" alt="ansatz">
 </p>
+We compute the expectation for Hamiltonian as 
+<p align="center"> <img src="https://render.githubusercontent.com/render/math?math=%5Ccolor%7Bgray%7DE(%5Ctheta)%3D%5Clangle%5Cpsi(%5Ctheta)%7CH%7C%5Cpsi(%5Ctheta)%5Crangle">. </p>
+By varying the parameters, we can find a minimum value , which represents the VQE approximation to ground state energy of hydrogen molecule.
+
+```python
+from mindquantum.algorithm.nisq.chem import Transform
+from mindquantum.framework import MQAnsatzOnlyLayer
+from mindspore.common.parameter import Parameter
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_scatter(x, y):
+    plt.figure(facecolor='w')
+    plt.minorticks_on()
+    plt.scatter(x, y, marker='o', c='r', label="VQE")
+    plt.xlabel("Bond Length "r"$R$")
+    plt.ylabel("Total Energy(hartree)")
+    plt.legend()
+    #plt.title("Energy surface of molecular hydrogen as determined by VQE")
+    plt.savefig("H2 energy.pdf")
+    return None
+    
+def vqe(total_circuit, all_coeff, dist, init_amp=[0.0]):
+    #all_iter_list = []; 
+    Ei_min_list = []
+    for _, coeff in enumerate(all_coeff):
+        hh = hamiltonian(coeff)
+        grad_ops = mq.Simulator("projectq", total_circuit.n_qubits).get_expectation_with_grad(hh, total_circuit)
+        pqcent = MQAnsatzOnlyLayer(grad_ops)
+        pqcent.weight = Parameter(ms.Tensor(init_amp, pqcent.weight.dtype) )
+        
+        init_E = pqcent()
+        
+        optimzer = ms.nn.Adagrad(pqcent.trainable_params(), learning_rate=4e-2)
+        train_pqcent = ms.nn.TrainOneStepCell(pqcent, optimzer)
+        
+        eps = 1.e-8
+        E_diff = eps * 1e3
+        E_last = init_E.asnumpy() + E_diff
+        
+        iter_idx = 0
+        #iter_list = []
+        Ei_list = []
+        
+        
+        while abs(E_diff) > eps:
+            Ei = train_pqcent().asnumpy()
+        
+            if iter_idx % 5 == 0:
+                #iter_list.append(iter_idx)
+                Ei_list.append(Ei)
+            E_diff = E_last - Ei
+            E_last = Ei
+            iter_idx += 1
+        #all_iter_list.append(iter_list)
+        Ei_min_list.append(min(Ei_list) )
+    plot_scatter(dist, Ei_min_list)
+    
+    return None
+```
+Runing the code we design above, we get the result.
+<p align="center">
+  <img width="400" src="H2 energy.svg" alt="H2">
+</p>
 
 
 
